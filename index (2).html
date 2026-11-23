@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loan Book</title>
+<style>
+:root{--bg:#f3f5f4;--card:#fff;--ink:#14201c;--mute:#5d6b66;--line:#d9e0dd;--accent:#0f6b57;--late:#b3261e;--warn:#a65f00;--ok:#2d7a4f;--gold:#9a7400;--latebg:#fbe9e7;--warnbg:#fff1d6;--okbg:#e3f3ea;--goldbg:#fff4c9;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101715;--card:#18221f;--ink:#e8f0ed;--mute:#95a5a0;--line:#2a3833;--accent:#4cc3a4;--late:#ff8a80;--warn:#ffc266;--ok:#7fd6a0;--gold:#ffd54a;--latebg:#3a1e1b;--warnbg:#3a2c12;--okbg:#17301f;--goldbg:#3b3310;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101715;--card:#18221f;--ink:#e8f0ed;--mute:#95a5a0;--line:#2a3833;--accent:#4cc3a4;--late:#ff8a80;--warn:#ffc266;--ok:#7fd6a0;--gold:#ffd54a;--latebg:#3a1e1b;--warnbg:#3a2c12;--okbg:#17301f;--goldbg:#3b3310;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:28px;margin:8px 0 0}
+.tag{font:italic 14px Georgia,serif;color:var(--gold);margin:0 0 4px}
+.sub{color:var(--mute);font:13px system-ui,sans-serif;margin:0 0 14px}
+h2{font-size:19px;margin:20px 0 8px}
+.alerts{display:grid;gap:8px;margin-bottom:14px}
+.alert{padding:10px 12px;border-radius:10px;font:14px/1.35 system-ui,sans-serif;border-left:5px solid}
+.alert.late{background:var(--latebg);border-color:var(--late)}
+.alert.warn{background:var(--warnbg);border-color:var(--warn)}
+.alert.ok{background:var(--okbg);border-color:var(--ok)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;border-top:4px solid var(--accent)}
+.stat.r{border-top-color:var(--late)}.stat.g{border-top-color:var(--ok)}
+.stat b{display:block;font-size:22px}
+.stat span{font:13px system-ui,sans-serif;color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.card.late{border-left-color:var(--late)}.card.warn{border-left-color:var(--warn)}.card.ok{border-left-color:var(--ok)}.card.idle{border-left-color:var(--accent)}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.name{font-size:18px;font-weight:700}
+.badge{font:12px system-ui,sans-serif;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.badge.late{background:var(--latebg);color:var(--late)}.badge.warn{background:var(--warnbg);color:var(--warn)}.badge.ok{background:var(--okbg);color:var(--ok)}.badge.gold{background:var(--goldbg);color:var(--gold)}
+.badge.idle{background:var(--bg);color:var(--accent);border:1px solid var(--line)}
+.meta{font:14px/1.5 system-ui,sans-serif;color:var(--mute);margin-top:4px}
+.owe{font:700 15px system-ui,sans-serif}
+details{margin-top:8px}
+summary{cursor:pointer;font:14px system-ui,sans-serif;color:var(--accent);padding:4px 0}
+.act{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+input{font:16px system-ui,sans-serif;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+label{font:13px system-ui,sans-serif;color:var(--mute);display:block;margin:8px 0 3px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font:600 15px system-ui,sans-serif;padding:10px 14px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+button.danger{background:transparent;color:var(--late);border-color:var(--late)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.empty{font:15px system-ui,sans-serif;color:var(--mute);padding:14px;border:1px dashed var(--line);border-radius:10px}
+.note{font:13px/1.4 system-ui,sans-serif;color:var(--mute);margin-top:18px}
+.bar{height:14px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;border-radius:99px;transition:width .8s ease}
+.hint{font:13px system-ui,sans-serif;color:var(--accent);margin-top:6px}
+#splash{position:fixed;inset:0;z-index:99;background:#0b1f1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .5s}
+#splash.out{opacity:0;pointer-events:none}
+#sT{font:700 38px Georgia,serif;letter-spacing:.06em;min-height:1.3em;color:#e8f0ed}
+#sB{font:16px system-ui,sans-serif;color:#8fd3bd;opacity:0;transition:opacity .8s}
+#sS{font:italic 22px Georgia,serif;color:#ffd54a;opacity:0;transform:translateX(-30px);transition:all .8s;margin-top:18px}
+#sL{height:3px;width:0;background:#ffd54a;margin-top:12px;border-radius:3px;transition:width 1s ease}
+#splash.b #sB,#splash.s #sS{opacity:1}#splash.s #sS{transform:none}#splash.s #sL{width:160px}
+#sK{font:12px system-ui,sans-serif;color:#6f8a82;margin-top:40px}
+#dlg{position:fixed;inset:0;z-index:130;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px}.dbox{background:var(--card);color:var(--ink);border-radius:12px;padding:16px;width:100%;max-width:420px;font:15px system-ui,sans-serif}.dbox p{margin:0 0 10px}.dbox textarea{width:100%;font:13px monospace;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);margin-bottom:10px}#toast{position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:140;background:#14201c;color:#fff;padding:12px 14px;border-radius:10px;font:14px system-ui,sans-serif;display:none;text-align:center}
+select{font:16px system-ui,sans-serif;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+.av{width:34px;height:34px;border-radius:50%;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font:700 15px system-ui,sans-serif;margin-right:8px;vertical-align:middle}
+a.btn{font:600 15px system-ui,sans-serif;padding:10px 14px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);text-decoration:none;display:inline-block}
+#lock{position:fixed;inset:0;z-index:120;background:#0b1f1a;color:#e8f0ed;display:flex;align-items:center;justify-content:center;padding:24px}
+.lk{width:100%;max-width:320px;display:grid;gap:10px;text-align:center;font-family:system-ui,sans-serif}
+.lk h2{font:700 30px Georgia,serif;margin:0}.lk p{margin:0;font-size:14px;color:#8fd3bd;min-height:2.6em}
+#lock input{text-align:center;letter-spacing:.4em;font-size:22px}
+#idv{position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+#idv img{max-width:100%;max-height:78%;border-radius:8px}
+.chk{display:flex;gap:8px;align-items:center;font:14px system-ui,sans-serif;margin-top:8px}.chk input{width:auto}
+</style>
+</head>
+<body>
+<div id="splash"><div id="sT"></div><div id="sB">by Laggar Nation</div><div id="sS">We keep moving</div><div id="sL"></div><div id="sK">Tap to skip</div></div>
+<div id="dlg"><div class="dbox"><p id="dMsg"></p><textarea id="dTa" rows="6"></textarea><div class="act"><button id="dYes">OK</button><button class="ghost" id="dNo">Cancel</button></div></div></div>
+<div id="toast" role="status"></div>
+<div id="lock"><div class="lk"><h2>Loan Book</h2><p id="lkMsg"></p><input id="lkPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN" placeholder="PIN"><input id="lkPin2" type="password" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="Repeat PIN" placeholder="Repeat PIN" style="display:none"><button id="lkGo">Unlock</button><button class="ghost" id="lkReset" style="color:#8fd3bd;border-color:#8fd3bd">Forgot PIN</button></div></div>
+<div id="idv"><img id="idImg" alt="ID photo"><button id="idClose">Close</button></div>
+<main>
+<button class="ghost" id="lockBtn" style="float:right;padding:6px 12px;margin-top:8px">Lock</button>
+<h1>Loan Book</h1>
+<p class="tag">by Laggar Nation · we keep moving</p>
+<p class="sub" id="today"></p>
+<div class="alerts" id="alerts"></div>
+<div class="stats" id="stats"></div>
+<div id="cap" style="margin-top:8px"></div>
+<div id="rec"></div>
+
+<h2>Goals</h2>
+<div id="goals"></div>
+<details class="card" id="gBox"><summary style="font-size:16px;font-weight:700">Add a goal</summary>
+<label for="gName">Goal</label><input id="gName" placeholder="e.g. P1,300 before January">
+<div class="grid2"><div><label for="gTar">Target (P)</label><input id="gTar" type="number" inputmode="decimal"></div><div><label for="gCur">Have now (P)</label><input id="gCur" type="number" inputmode="decimal" value="0"></div></div>
+<div class="act"><button id="gAdd">Save goal</button></div></details>
+
+<h2>Active loans</h2>
+<div id="active"></div>
+<details class="card" id="addBox"><summary style="font-size:16px;font-weight:700">Add a loan</summary>
+<label for="fName">Borrower</label><input id="fName" placeholder="Name">
+<div class="grid2">
+<div><label for="fPrin">Amount lent (P)</label><input id="fPrin" type="number" inputmode="decimal" min="0"></div>
+<div><label for="fRate">Interest (%)</label><input id="fRate" type="number" inputmode="decimal" value="30" min="0"></div>
+<div><label for="fLent">Date lent</label><input id="fLent" type="date"></div>
+<div><label for="fDue">Due date</label><input id="fDue" type="date"></div></div>
+<div class="hint" id="hint"></div>
+<label for="fStat">Status</label><select id="fStat"><option value="active">Active (still owed)</option><option value="settled">Past loan, paid back</option><option value="lost">Past loan, written off</option></select>
+<div id="pastBox" style="display:none"><div class="grid2"><div><label for="fPaidD">Date paid back</label><input id="fPaidD" type="date"></div><div><label for="fPaidA">Amount paid back (P)</label><input id="fPaidA" type="number" inputmode="decimal" placeholder="Empty = full amount"></div></div></div>
+<label for="fNote">Note (optional)</label><input id="fNote" placeholder="Pay day, agreement, etc.">
+<div class="act"><button id="addBtn">Save loan</button></div></details>
+
+<h2>Borrowers</h2>
+<div id="bors"></div>
+<h2>Settled and written off</h2>
+<div id="done"></div>
+
+<p class="note">Alerts show each time you open this page, so check it daily. A page can’t ring your phone while it is closed. Data lives in this browser on this phone only, so use “Copy backup” now and then.</p>
+<div class="act"><button class="ghost" id="bk">Copy backup</button><button class="ghost" id="rs">Restore backup</button></div>
+</main>
+<script>
+(function(){
+var KEY="loanbook-v1",GK="loanbook-goals-v1",GRACE=3,PEN=0.10;
+var loans=[],goals=[];
+try{loans=JSON.parse(localStorage.getItem(KEY)||"[]")||[];}catch(e){}
+try{goals=JSON.parse(localStorage.getItem(GK)||"[]")||[];}catch(e){}
+var PK="loanbook-people-v1",CK="loanbook-cash-v1",people={},cash={cash:0,reserve:100},NL=String.fromCharCode(10);
+try{people=JSON.parse(localStorage.getItem(PK)||"{}")||{};}catch(e){}
+try{cash=JSON.parse(localStorage.getItem(CK)||"null")||cash;}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(loans));localStorage.setItem(GK,JSON.stringify(goals));localStorage.setItem(PK,JSON.stringify(people));localStorage.setItem(CK,JSON.stringify(cash));}catch(e){}}
+function $(i){return document.getElementById(i);}
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x;}
+function parse(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+var now=new Date();now.setHours(0,0,0,0);
+function fmt(n){return "P"+(Math.round(n*100)/100).toLocaleString(undefined,{maximumFractionDigits:2});}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function calc(l){
+  if(l.lost)return {pen:0,total:0,bal:0,st:"lost",cls:"late",label:"Written off",late:0};
+  var base=l.principal*(1+l.rate/100),late=Math.round((now-parse(l.due))/86400000),pb=(l.payments||[]).filter(function(q){return Math.round((parse(q.date)-parse(l.due))/86400000)<=GRACE;}).reduce(function(a,q){return a+q.amt;},0),pen=(late>GRACE&&pb<base-0.005)?l.principal*PEN:0;
+  var paid=(l.payments||[]).reduce(function(a,p){return a+p.amt;},0),total=base+pen,bal=total-paid,st,cls,label;
+  if(bal<=0.005){st="done";cls="ok";label="Settled";}
+  else if(late>GRACE){st="penalty";cls="late";label="Late · penalty added";}
+  else if(late>0){st="late";cls="late";label="Late "+late+"d · "+(GRACE-late+1)+"d to penalty";}
+  else if(late===0){st="today";cls="warn";label="Due today";}
+  else if(late>=-3){st="soon";cls="warn";label="Due in "+(-late)+"d";}
+  else{st="ok";cls="idle";label="Due in "+(-late)+"d";}
+  return {pen:pen,total:total,bal:bal,st:st,cls:cls,label:label,late:late};
+}
+function key(n){return n.trim().toLowerCase();}
+function streakOf(name){
+  var s=0;
+  loans.filter(function(l){return key(l.name)===key(name);}).sort(function(a,b){return parse(a.due)-parse(b.due);}).forEach(function(l){
+    var c=calc(l);
+    if(c.st==="done"){
+      var pp=l.payments||[],last=pp.length?pp[pp.length-1].date:l.due;
+      var d=Math.round((parse(last)-parse(l.due))/86400000);
+      if(d<=0)s++;else if(d>GRACE)s=0;
+    }else if(c.st==="lost"||c.late>GRACE)s=0;
+  });
+  return s;
+}
+function tier(s,prin){
+  var small=prin>0&&prin<100,rate=small?40:30,next;
+  if(s>=3)rate=small?30:27;
+  if(s>=6)rate=25;
+  if(s===15)rate=20;
+  var th=[3,6,10,15].filter(function(t){return t>s;})[0];
+  var what={3:"lower rate",6:"25% rate",10:"higher limit and first call",15:"20% thank-you loan"};
+  next=th?(th-s)+" on-time to go for "+what[th]:"Top tier. Keep it going";
+  var perks=s>=10?" · higher limit, first call":"";
+  return {rate:rate,next:next,perks:perks};
+}
+function outOf(n){return loans.filter(function(l){var st=calc(l).st;return key(l.name)===key(n)&&st!=="done"&&st!=="lost";}).reduce(function(a,l){return a+l.principal;},0);}
+function limitFor(s){return s>=10?250:150;}
+function lostCard(l){var pd=(l.payments||[]).reduce(function(a,q){return a+q.amt;},0);return '<div class="card late"><div class="row"><span class="name">'+av(l.name)+esc(l.name)+'</span><span class="badge late">Written off</span></div><div class="meta">Lent '+fmt(l.principal)+' · paid back '+fmt(pd)+' · lost '+fmt(Math.max(l.principal-pd,0))+'</div><div class="act"><button class="ghost" data-unlost="'+l.id+'">Undo write-off</button><button class="danger" data-del="'+l.id+'">Delete</button></div></div>';}
+function pastPays(p,r,due){var st=$("fStat").value;if(st==="active")return [];var base=p*(1+r/100),a=parseFloat($("fPaidA").value);if(isNaN(a))a=st==="settled"?base:0;return a>0?[{amt:a,date:$("fPaidD").value||due}]:[];}
+function editForm(l){var id=l.id,ph=(l.payments||[]).map(function(q,i){return '<div class="row meta"><span>'+fmt(q.amt)+' on '+q.date+'</span><button class="danger" style="padding:4px 10px" data-pdel="'+id+':'+i+'">Remove</button></div>';}).join("")||'<div class="meta">No payments recorded.</div>';
+return '<details><summary>Edit loan and history</summary><label for="en'+id+'">Borrower</label><input id="en'+id+'" value="'+esc(l.name)+'"><div class="grid2"><div><label for="ep'+id+'">Amount lent (P)</label><input id="ep'+id+'" type="number" inputmode="decimal" value="'+l.principal+'"></div><div><label for="er'+id+'">Interest (%)</label><input id="er'+id+'" type="number" inputmode="decimal" value="'+l.rate+'"></div><div><label for="el'+id+'">Date lent</label><input id="el'+id+'" type="date" value="'+(l.lent||l.due)+'"></div><div><label for="ed'+id+'">Due date</label><input id="ed'+id+'" type="date" value="'+l.due+'"></div></div><div class="act"><button data-esave="'+id+'">Save changes</button></div><label>Payments</label>'+ph+'<div class="grid2"><div><label for="ap'+id+'">Add payment (P)</label><input id="ap'+id+'" type="number" inputmode="decimal"></div><div><label for="ad'+id+'">Date paid</label><input id="ad'+id+'" type="date" value="'+iso(now)+'"></div></div><div class="act"><button class="ghost" data-padd="'+id+'">Add payment</button></div></details>';}
+function hist(n){var ls=loans.filter(function(l){return key(l.name)===key(n);}).sort(function(a,b){return (a.lent||a.due)<(b.lent||b.due)?-1:1;});
+return '<details><summary>History ('+ls.length+' loan'+(ls.length===1?'':'s')+')</summary>'+ls.map(function(l){var c=calc(l),pp=l.payments||[],t;if(l.lost)t='written off';else if(c.st==="done")t='paid '+fmt(pp.reduce(function(a,q){return a+q.amt;},0))+(pp.length?' on '+pp[pp.length-1].date:'');else t='owed '+fmt(c.bal)+', due '+l.due;return '<div class="meta">'+fmt(l.principal)+' at '+l.rate+'%, lent '+(l.lent||l.due)+' · '+t+'</div>';}).join("")+'</details>';}
+function safe(k){return k.replace(/[^a-z0-9]/g,"_");}
+function av(n){var p=people[key(n)];return p&&p.photo?'<img class="av" alt="" src="'+p.photo+'">':'<span class="av">'+esc(n.trim().charAt(0).toUpperCase())+'</span>';}
+function remind(l){var c=calc(l);return "Hi "+l.name+", a reminder that your loan payment of "+fmt(c.bal)+" is "+(c.late>0?"overdue since "+l.due+(c.late>GRACE?". The late penalty has been added.":". A "+Math.round(PEN*100)+"% penalty is added after "+GRACE+" days."):"due on "+l.due+".")+" Thank you.";}
+function wa(l){var p=people[key(l.name)];if(!p||!p.phone)return "";var d=p.phone.replace(/\D/g,"");if(d.length===8)d="267"+d;return '<a class="btn" target="_blank" rel="noopener" href="https://wa.me/'+d+'?text='+encodeURIComponent(remind(l))+'">WhatsApp</a>';}
+function nextPay(day){day=Math.min(day,28);var d=new Date(now.getFullYear(),now.getMonth(),day);if((d-now)/86400000<7)d=new Date(now.getFullYear(),now.getMonth()+1,day);return iso(d);}
+function pform(n){var k=key(n),s=safe(k),p=people[k]||{};
+  return '<div class="meta">'+(ids[k]?'ID photo stored (encrypted)':p.idOn?'ID on file'+(p.idWhere?': '+esc(p.idWhere):''):'ID not marked on file')+(p.phone?' · '+esc(p.phone):'')+(p.payday?' · pay day '+p.payday:'')+'</div><details><summary>Edit profile</summary><label for="ph_'+s+'">Photo</label><input type="file" accept="image/*" data-photo="'+esc(k)+'"><label for="pn_'+s+'">Phone</label><input id="pn_'+s+'" type="tel" value="'+esc(p.phone||"")+'"><label for="pd_'+s+'">Pay day (day of month)</label><input id="pd_'+s+'" type="number" min="1" max="31" value="'+(p.payday||"")+'"><label for="ip_'+s+'">ID photo (encrypted with your PIN)</label>'+(ids[k]?'<div class="act"><button class="ghost" data-idview="'+esc(k)+'">View ID</button><button class="danger" data-iddel="'+esc(k)+'">Delete ID photo</button></div>':'')+'<input id="ip_'+s+'" type="file" accept="image/*" data-idphoto="'+esc(k)+'"><div class="chk"><input id="id_'+s+'" type="checkbox"'+(p.idOn?' checked':'')+'><label for="id_'+s+'" style="margin:0">ID photo is on file</label></div><label for="iw_'+s+'">Where it is kept</label><input id="iw_'+s+'" placeholder="e.g. Gallery album Loans" value="'+esc(p.idWhere||"")+'"><div class="act"><button data-psave="'+esc(k)+'">Save profile</button></div></details>';}
+function shrink(f,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var c=document.createElement("canvas");c.width=c.height=128;var m=Math.min(im.width,im.height);c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,128,128);cb(c.toDataURL("image/jpeg",0.7));};im.src=r.result;};r.readAsDataURL(f);}
+function card(l){
+  var c=calc(l);if(l.lost)return lostCard(l);var h='<div class="card '+c.cls+'"><div class="row"><span class="name">'+av(l.name)+esc(l.name)+'</span><span class="badge '+c.cls+'">'+c.label+'</span></div>';
+  h+='<div class="meta">Lent '+fmt(l.principal)+' at '+l.rate+'% · due '+l.due+(l.note?'<br>'+esc(l.note):'')+'</div>';
+  h+='<div class="row" style="margin-top:6px"><span class="owe">Owes '+fmt(Math.max(c.bal,0))+'</span><span class="meta">of '+fmt(c.total)+(c.pen?' (incl. '+fmt(c.pen)+' penalty)':'')+'</span></div>';
+  if(c.st!=="done"){
+    h+='<details><summary>Record payment or edit</summary><label for="pay'+l.id+'">Payment received (P)</label><input id="pay'+l.id+'" type="number" inputmode="decimal" min="0" value="'+Math.round(c.bal*100)/100+'">';
+    h+='<div class="act"><button data-pay="'+l.id+'">Save payment</button><button class="ghost" data-msg="'+l.id+'">Copy reminder</button><button class="ghost" data-agr="'+l.id+'">Copy agreement</button>'+wa(l)+'</div>';
+    h+='<label for="due'+l.id+'">Change due date</label><input id="due'+l.id+'" type="date" value="'+l.due+'"><div class="act"><button class="ghost" data-due="'+l.id+'">Update date</button><button class="danger" data-del="'+l.id+'">Delete loan</button><button class="danger" data-lost="'+l.id+'">Write off</button></div></details>';
+  }else h+='<div class="act"><button class="danger" data-del="'+l.id+'">Delete</button></div>';
+  return h+editForm(l)+'</div>';
+}
+function gcard(g,i){
+  var p=g.tar>0?Math.min(g.cur/g.tar,1):0,pct=Math.round(p*100),hue=p>=1?48:Math.round(p*130);
+  var col="hsl("+hue+",75%,"+(p>=1?"50%":"45%")+")";
+  return '<div class="card" style="border-left-color:'+col+'"><div class="row"><span class="name">'+esc(g.name)+'</span><span class="badge '+(p>=1?'gold':'idle')+'">'+(p>=1?'Goal hit':pct+'%')+'</span></div><div class="bar"><i style="width:'+pct+'%;background:'+col+'"></i></div><div class="meta">'+fmt(g.cur)+' of '+fmt(g.tar)+(p<1?' · '+fmt(g.tar-g.cur)+' to go':'')+'</div><details><summary>Update goal</summary><label for="gc'+i+'">Have now (P)</label><input id="gc'+i+'" type="number" inputmode="decimal" value="'+g.cur+'"><div class="act"><button data-gup="'+i+'">Update</button><button class="danger" data-gdel="'+i+'">Delete goal</button></div></details></div>';
+}
+function render(){
+  $("today").textContent="Today is "+now.toDateString()+" · late penalty "+Math.round(PEN*100)+"% of principal after "+GRACE+" days";
+  var act=[],done=[],al=[],out=0,exp=0,over=0,names={};
+  loans.forEach(function(l){
+    names[key(l.name)]=l.name;
+    var c=calc(l);
+    if(c.st==="done"||c.st==="lost"){done.push(l);return;}
+    act.push(l);out+=l.principal;exp+=c.bal;if(c.late>0)over+=c.bal;
+    var t=esc(l.name)+" owes "+fmt(c.bal),left=GRACE-c.late+1;
+    if(c.st==="penalty")al.push(["late",t+". "+c.late+" days late. Penalty of "+fmt(c.pen)+" is added and the streak is reset."]);
+    else if(c.st==="late")al.push(["late",t+". "+c.late+" day"+(c.late>1?"s":"")+" late. "+left+" day"+(left>1?"s":"")+" left before the penalty."]);
+    else if(c.st==="today")al.push(["warn",t+" is due today."]);
+    else if(c.st==="soon")al.push(["warn",t+" is due in "+(-c.late)+" day"+(-c.late>1?"s":"")+"."]);
+  });
+  var by={};act.forEach(function(l){var k=key(l.name);by[k]=(by[k]||0)+l.principal;});
+  Object.keys(by).forEach(function(k){var sh=out?by[k]/out:0;if(sh>0.4)al.push(["warn",esc(names[k])+" holds "+Math.round(sh*100)+"% of your money out ("+fmt(by[k])+" of "+fmt(out)+"). If that loan defaults, it hits hard."]);});
+  al.sort(function(a,b){return a[0]===b[0]?0:(a[0]==="late"?-1:1);});
+  $("alerts").innerHTML=al.length?al.map(function(a){return '<div class="alert '+a[0]+'">'+a[1]+'</div>';}).join(""):'<div class="alert ok">Nothing due or late right now.</div>';
+  $("stats").innerHTML='<div class="stat"><b>'+fmt(out)+'</b><span>Principal out</span></div><div class="stat g"><b>'+fmt(exp)+'</b><span>Expected back</span></div><div class="stat"><b>'+act.length+'</b><span>Active loans</span></div><div class="stat r"><b>'+fmt(over)+'</b><span>Overdue amount</span></div>';
+  var fr=cash.cash-cash.reserve,earn=0,mo=iso(now).slice(0,7);
+  done.forEach(function(l){if(l.lost)return;var pp=l.payments||[];if(pp.length&&pp[pp.length-1].date.slice(0,7)===mo)earn+=pp.reduce(function(a,q){return a+q.amt;},0)-l.principal;});
+  var pc=Math.max(0,Math.min(earn/3000,1));
+  $("cap").innerHTML='<div class="card idle"><div class="row"><span class="name">Capital</span><span class="badge '+(fr>=50?'ok':fr>0?'warn':'late')+'">'+(fr<0?fmt(-fr)+' below reserve':fmt(fr)+' free to lend')+'</span></div><div class="meta">Cash on hand '+fmt(cash.cash)+' · reserve '+fmt(cash.reserve)+' · total capital '+fmt(cash.cash+out)+'</div><div class="bar"><i style="width:'+Math.round(pc*100)+'%;background:var(--gold)"></i></div><div class="meta">Interest earned this month '+fmt(earn)+' of the P3,000 target</div><details><summary>Update cash</summary><label for="cashIn">Cash on hand (P)</label><input id="cashIn" type="number" inputmode="decimal" value="'+cash.cash+'"><label for="resIn">Untouched reserve (P)</label><input id="resIn" type="number" inputmode="decimal" value="'+cash.reserve+'"><div class="act"><button data-cash="1">Save</button></div></details></div>';
+  var closed=done.length,lostN=0,intAll=0,lossAll=0,d7=0,d14=0,ov=0;
+  done.forEach(function(l){var pd=(l.payments||[]).reduce(function(a,q){return a+q.amt;},0);if(l.lost){lostN++;lossAll+=Math.max(l.principal-pd,0);}else intAll+=pd-l.principal;});
+  act.forEach(function(l){var c=calc(l);if(c.late>0){ov+=c.bal;return;}var dd=-c.late;if(dd<=7)d7+=c.bal;if(dd<=14)d14+=c.bal;});
+  $("rec").innerHTML='<div class="card idle"><div class="row"><span class="name">Track record</span><span class="badge '+(lostN?'late':'ok')+'">'+(closed?Math.round(lostN/closed*100)+'% default rate':'No closed loans yet')+'</span></div><div class="meta">'+closed+' closed · '+lostN+' written off<br>Interest earned '+fmt(intAll)+' · lost to defaults '+fmt(lossAll)+'<br><b>Net '+fmt(intAll-lossAll)+'</b></div></div><div class="card idle"><div class="row"><span class="name">Cash coming in</span><span class="badge warn">'+fmt(d7)+' in 7 days</span></div><div class="meta">Next 14 days '+fmt(d14)+'<br>Free to lend after next 7 days if all arrive: '+fmt(Math.max(fr,0)+d7)+(ov?'<br>Overdue '+fmt(ov)+' is not counted':'')+'</div></div>';
+  act.sort(function(a,b){return parse(a.due)-parse(b.due);});
+  $("active").innerHTML=act.length?act.map(card).join(""):'<div class="empty">No active loans. Add one below.</div>';
+  $("done").innerHTML=done.length?done.map(card).join(""):'<div class="empty">Settled loans show up here.</div>';
+  $("goals").innerHTML=goals.length?goals.map(gcard).join(""):'<div class="empty">No goals yet. Add one and watch the bar change colour as you close in.</div>';
+  var ks=Object.keys(names);
+  $("bors").innerHTML=ks.length?ks.map(function(k){var s=streakOf(names[k]),t=tier(s,150),sm=tier(s,50);
+    return '<div class="card '+(s>=3?'ok':'idle')+'"><div class="row"><span class="name">'+av(names[k])+esc(names[k])+'</span><span class="badge '+(s>=3?'gold':'idle')+'">'+s+' on-time in a row</span></div><div class="meta">Next loan: '+t.rate+'% (under P100: '+sm.rate+'%)'+t.perks+'<br>'+t.next+'<br>Limit '+fmt(limitFor(s))+' · out now '+fmt(outOf(names[k]))+'</div>'+hist(names[k])+'<div class="act"><button class="ghost" data-addpast="'+esc(names[k])+'">Add past loan</button></div>'+pform(names[k])+'</div>';}).join(""):'<div class="empty">Borrowers and their streaks appear here.</div>';
+}
+var okNext=false,lastClick=null;
+document.addEventListener("click",function(e){lastClick=e.target;},true);
+function toast(m){var t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(function(){t.style.display="none";},3500);}
+function dlg(msg,ta,yes,fn){var t=$("dTa");$("dMsg").textContent=msg;t.style.display=ta===null?"none":"block";if(ta!==null)t.value=ta;$("dYes").textContent=yes;$("dYes").onclick=function(){var v=t.value;$("dlg").style.display="none";fn(v);};$("dNo").onclick=function(){$("dlg").style.display="none";};$("dlg").style.display="flex";if(ta!==null){t.focus();t.select();}}
+function conf(msg){if(okNext){okNext=false;return true;}var el=lastClick;dlg(msg,null,"Yes",function(){okNext=true;if(el&&el.click)el.click();});return false;}
+function copy(t){function fb2(){dlg("Select all and copy this text:",t,"Done",function(){});}try{navigator.clipboard.writeText(t).then(function(){toast("Copied.");},fb2);}catch(e){fb2();}}
+document.addEventListener("click",function(e){
+  var t=e.target,id,d=t.dataset;
+  if(d.pay){id=d.pay;var v=parseFloat($("pay"+id).value);if(!(v>0))return;loans.forEach(function(l){if(String(l.id)===id){l.payments=l.payments||[];l.payments.push({amt:v,date:iso(now)});}});save();render();}
+  else if(d.due){id=d.due;var x=$("due"+id).value;if(!x)return;loans.forEach(function(l){if(String(l.id)===id)l.due=x;});save();render();}
+  else if(d.del){if(!conf("Delete this loan permanently?"))return;loans=loans.filter(function(l){return String(l.id)!==d.del;});save();render();}
+  else if(d.msg){loans.forEach(function(l){if(String(l.id)===d.msg){var c=calc(l);copy("Hi "+l.name+", a reminder that your loan payment of "+fmt(c.bal)+" is "+(c.late>0?"overdue since "+l.due+(c.late>GRACE?". The late penalty has been added.":". A "+Math.round(PEN*100)+"% penalty is added after "+GRACE+" days."):"due on "+l.due+".")+" Thank you.");}});}
+  else if(d.addpast){$("fName").value=d.addpast;$("fStat").value="settled";$("pastBox").style.display="block";$("addBox").open=true;hint();$("addBox").scrollIntoView({behavior:"smooth",block:"start"});$("fPrin").focus();toast("Fill in the past loan below.");}
+  else if(d.esave){var L=loans.filter(function(l){return String(l.id)===d.esave;})[0];if(!L)return;var nn=$("en"+d.esave).value.trim(),pp2=parseFloat($("ep"+d.esave).value),rr=parseFloat($("er"+d.esave).value),ll=$("el"+d.esave).value,dd2=$("ed"+d.esave).value;if(!nn||!(pp2>0)||isNaN(rr)||!ll||!dd2){toast("Fill in every field.");return;}L.name=nn;L.principal=pp2;L.rate=rr;L.lent=ll;L.due=dd2;save();render();}
+  else if(d.padd){var L2=loans.filter(function(l){return String(l.id)===d.padd;})[0],am=parseFloat($("ap"+d.padd).value),dt=$("ad"+d.padd).value;if(!L2||!(am>0)||!dt)return;L2.payments=L2.payments||[];L2.payments.push({amt:am,date:dt});L2.payments.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});save();render();}
+  else if(d.pdel){var pr2=d.pdel.split(":");loans.forEach(function(l){if(String(l.id)===pr2[0]&&l.payments)l.payments.splice(+pr2[1],1);});save();render();}
+  else if(d.lost){if(!conf("Write this loan off as lost? It resets the borrower’s streak."))return;loans.forEach(function(l){if(String(l.id)===d.lost){l.lost=true;l.lostDate=iso(now);}});save();render();}
+  else if(d.unlost){loans.forEach(function(l){if(String(l.id)===d.unlost){delete l.lost;delete l.lostDate;}});save();render();}
+  else if(d.idview){if(!K||!ids[d.idview])return;dec(ids[d.idview]).then(function(u){$("idImg").src=u;$("idv").style.display="flex";});}
+  else if(d.iddel){if(!conf("Delete this ID photo?"))return;delete ids[d.iddel];saveIds();render();}
+  else if(d.cash){cash.cash=parseFloat($("cashIn").value)||0;cash.reserve=parseFloat($("resIn").value)||0;save();render();}
+  else if(d.agr){loans.forEach(function(l){if(String(l.id)===d.agr){var i=l.principal*l.rate/100;copy(["Loan agreement","Borrower: "+l.name,"Amount lent: "+fmt(l.principal),"Interest: "+l.rate+"% ("+fmt(i)+")","Total to repay: "+fmt(l.principal+i),"Date lent: "+l.lent,"Due date: "+l.due,"Late penalty: "+Math.round(PEN*100)+"% of the amount lent if more than "+GRACE+" days late.","Reply “Agreed” to confirm."].join(NL));}});}
+  else if(d.psave){var k=d.psave,s2=safe(k),pr=people[k]=people[k]||{};pr.phone=$("pn_"+s2).value.trim();pr.payday=parseInt($("pd_"+s2).value)||0;pr.idOn=$("id_"+s2).checked;pr.idWhere=$("iw_"+s2).value.trim();save();render();}
+  else if(d.gup){var g=goals[+d.gup],v2=parseFloat($("gc"+d.gup).value);if(g&&!isNaN(v2)){g.cur=v2;save();render();}}
+  else if(d.gdel){if(!conf("Delete this goal?"))return;goals.splice(+d.gdel,1);save();render();}
+});
+document.addEventListener("change",function(e){var t=e.target;
+  if(t.dataset&&t.dataset.idphoto&&t.files&&t.files[0]){if(!K)return;var k2=t.dataset.idphoto;shrinkTo(t.files[0],900,function(u){enc(u).then(function(o){var old=ids[k2];ids[k2]=o;if(!saveIds()){if(old)ids[k2]=old;else delete ids[k2];toast("Not enough storage space for this photo.");return;}(people[k2]=people[k2]||{}).idOn=true;save();render();});});return;}if(t.dataset&&t.dataset.photo&&t.files&&t.files[0]){var k=t.dataset.photo;shrink(t.files[0],function(u){(people[k]=people[k]||{}).photo=u;save();render();});}});
+var K=null,PV="loanbook-pin-v1",IK="loanbook-ids-v1",ids={},fails=0,hideT=0;
+try{ids=JSON.parse(localStorage.getItem(IK)||"{}")||{};}catch(e){}
+function tb(u){var x="";for(var i=0;i<u.length;i++)x+=String.fromCharCode(u[i]);return btoa(x);}
+function fb(b){var x=atob(b),u=new Uint8Array(x.length);for(var i=0;i<x.length;i++)u[i]=x.charCodeAt(i);return u;}
+function derive(pin,salt){return crypto.subtle.importKey("raw",new TextEncoder().encode(pin),"PBKDF2",false,["deriveKey"]).then(function(m){return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:200000,hash:"SHA-256"},m,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);});}
+function enc(t){var iv=crypto.getRandomValues(new Uint8Array(12));return crypto.subtle.encrypt({name:"AES-GCM",iv:iv},K,new TextEncoder().encode(t)).then(function(b){return {iv:tb(iv),d:tb(new Uint8Array(b))};});}
+function dec(o){return crypto.subtle.decrypt({name:"AES-GCM",iv:fb(o.iv)},K,fb(o.d)).then(function(b){return new TextDecoder().decode(b);});}
+function shrinkTo(f,mx,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",0.7));};im.src=r.result;};r.readAsDataURL(f);}
+function saveIds(){try{localStorage.setItem(IK,JSON.stringify(ids));return true;}catch(e){return false;}}
+function closeId(){$("idv").style.display="none";$("idImg").removeAttribute("src");}
+function lockMode(){var has=!!localStorage.getItem(PV);$("lkMsg").textContent=has?"Enter your PIN.":"Create a PIN of 4 to 6 digits. It locks the app and encrypts ID photos. If you forget it, the ID photos can’t be recovered.";$("lkPin2").style.display=has?"none":"block";$("lkGo").textContent=has?"Unlock":"Set PIN";$("lkPin").value="";$("lkPin2").value="";}
+function lockNow(){K=null;closeId();$("lock").style.display="flex";lockMode();}
+function unlocked(){$("lock").style.display="none";$("lkPin").value="";$("lkPin2").value="";fails=0;render();runSplash();}
+function lockInit(){
+  lockMode();
+  $("lkGo").onclick=function(){
+    var pin=$("lkPin").value,raw=localStorage.getItem(PV);
+    if(!/^\d{4,6}$/.test(pin)){$("lkMsg").textContent="Use 4 to 6 digits.";return;}
+    if(!window.crypto||!crypto.subtle){$("lkMsg").textContent="This browser can’t do encryption here.";return;}
+    if(!raw){
+      if(pin!==$("lkPin2").value){$("lkMsg").textContent="The two PINs don’t match.";return;}
+      var salt=crypto.getRandomValues(new Uint8Array(16));
+      derive(pin,salt).then(function(k){K=k;return enc("ok");}).then(function(v){try{localStorage.setItem(PV,JSON.stringify({s:tb(salt),v:v}));}catch(e){}unlocked();});
+    }else{
+      if(fails>=5){$("lkMsg").textContent="Too many tries. Wait 30 seconds.";return;}
+      var o=JSON.parse(raw);
+      derive(pin,fb(o.s)).then(function(k){K=k;return dec(o.v);}).then(function(){unlocked();}).catch(function(){K=null;fails++;$("lkMsg").textContent="Wrong PIN. "+(5-fails>0?(5-fails)+" tries left.":"Locked for 30 seconds.");if(fails>=5)setTimeout(function(){fails=0;$("lkMsg").textContent="Enter your PIN.";},30000);});
+    }
+  };
+  $("lkPin").onkeydown=$("lkPin2").onkeydown=function(e){if(e.key==="Enter")$("lkGo").click();};
+  $("lkReset").onclick=function(){if(!conf("This deletes the PIN and every saved ID photo. Loans and goals stay. Continue?"))return;try{localStorage.removeItem(PV);localStorage.removeItem(IK);}catch(e){}ids={};K=null;lockMode();};
+  $("lockBtn").onclick=lockNow;$("idClose").onclick=closeId;
+  document.addEventListener("visibilitychange",function(){if(document.hidden)hideT=Date.now();else if(K&&hideT&&Date.now()-hideT>60000)lockNow();});
+}
+var edited=false;
+function hint(){var n=$("fName").value,p=parseFloat($("fPrin").value);if(!n.trim()){$("hint").textContent="";return;}var s=streakOf(n),t=tier(s,p||150);$("hint").textContent=n.trim()+" has "+s+" on-time in a row. Suggested rate: "+t.rate+"%. Limit "+fmt(limitFor(s))+", out now "+fmt(outOf(n))+".";if(!edited&&$("fStat").value==="active")$("fRate").value=t.rate;var pp=people[key(n)];if(pp&&pp.payday&&!$("fDue").value)$("fDue").value=nextPay(pp.payday);}
+$("fName").oninput=hint;$("fPrin").oninput=hint;$("fRate").oninput=function(){edited=true;};
+$("addBtn").onclick=function(){
+  var n=$("fName").value.trim(),p=parseFloat($("fPrin").value),r=parseFloat($("fRate").value),due=$("fDue").value;
+  if(!n||!(p>0)||isNaN(r)||!due){toast("Fill in the borrower, amount, interest and due date.");return;}
+  var wasPast=$("fStat").value!=="active";var lim=limitFor(streakOf(n));if($("fStat").value==="active"&&outOf(n)+p>lim&&!conf(n+" would have "+fmt(outOf(n)+p)+" out, over the "+fmt(lim)+" limit for their streak. Lend anyway?"))return;loans.push({id:Date.now(),name:n,principal:p,rate:r,lent:$("fLent").value||iso(now),due:due,note:$("fNote").value.trim(),payments:pastPays(p,r,due),lost:$("fStat").value==="lost"||undefined});
+  save();(wasPast?["fPrin","fDue","fNote"]:["fName","fPrin","fDue","fNote"]).forEach(function(i){$(i).value="";});$("hint").textContent="";edited=false;if(!wasPast){$("fStat").value="active";$("pastBox").style.display="none";}$("fPaidD").value="";$("fPaidA").value="";$("fRate").value=30;$("addBox").open=wasPast;render();if(wasPast)toast("Saved. Add the next one, or tap Add a loan to close.");
+};
+$("gAdd").onclick=function(){var n=$("gName").value.trim(),t=parseFloat($("gTar").value),c=parseFloat($("gCur").value)||0;if(!n||!(t>0)){toast("Add a goal name and a target amount.");return;}goals.push({name:n,tar:t,cur:c});save();$("gName").value="";$("gTar").value="";$("gBox").open=false;render();};
+$("fLent").value=iso(now);
+$("fStat").onchange=function(){$("pastBox").style.display=this.value==="active"?"none":"block";};
+$("bk").onclick=function(){copy(JSON.stringify({loans:loans,goals:goals,people:people,cash:cash}));};
+$("rs").onclick=function(){dlg("Paste your backup text:","","Import",function(s){if(!s.trim())return;try{var a=JSON.parse(s);if(Array.isArray(a)){var pos={};loans.forEach(function(l,i){pos[l.id]=i;});var added=0,upd=0;a.forEach(function(l){if(pos[l.id]!==undefined){loans[pos[l.id]]=l;upd++;}else{pos[l.id]=loans.length;loans.push(l);added++;}});toast("Added "+added+", updated "+upd+" loans. Nothing else was changed.");}else{loans=a.loans||[];goals=a.goals||[];people=a.people||{};cash=a.cash||cash;}save();render();}catch(e){toast("That backup text is not valid.");}});};
+render();
+// splash, once per day
+var sp=$("splash"),seen="";sp.style.display="none";var splashed=false;function runSplash(){if(splashed)return;splashed=true;try{seen=localStorage.getItem("loanbook-splash")||"";}catch(e){}
+var rm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function close(){sp.classList.add("out");setTimeout(function(){sp.style.display="none";},600);}
+if(seen===iso(now)||rm){sp.style.display="none";}
+else{
+  try{localStorage.setItem("loanbook-splash",iso(now));}catch(e){}sp.style.display="flex";
+  var w="LOAN BOOK",i=0,tm=setInterval(function(){i++;$("sT").textContent=w.slice(0,i);if(i>=w.length){clearInterval(tm);sp.classList.add("b");setTimeout(function(){sp.classList.add("s");},600);setTimeout(close,2800);}},110);
+  sp.onclick=close;
+}
+}
+lockInit();
+})();
+</script>
+</body>
+</html>
